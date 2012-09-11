@@ -1,19 +1,26 @@
 import httplib2
+import mykeys
 
 from apiclient.discovery import build
 from oauth2client.file import Storage
 from oauth2client.client import OAuth2WebServerFlow
 from oauth2client.tools import run
 
-# different google tool ids
-CALID = "k4lb250s87sc3ugvsi0uvjji54@group.calendar.google.com"
-TASK_ID = ''
 
-# oauth credentials
-CLIENT_ID = '''232456248451-ckqsj6jm08ampdrg7o06dppkgtganmj9.apps.googleusercontent.com'''
-CLIENT_SECRET = 'v2AXx9_0XPuBeAaZd7wdIY7e'
-USER_AGENT = 'Benk/V1'
-DEVELOPER_KEY = 'AIzaSyCn75d6AaMgNOKo0vkrmPc2lxjXVyLdq1w'
+'''
+NOTE:
+Replace all instances of mykeys.** with your own Google API keys.
+mykeys.py was not provided as it contained my Google credentials.
+
+I'm using a separate mykeys.py file to store my credentials because I don't have
+to continually remove my credentials when posting to github.
+'''
+CALID = mykeys.CALID
+TASK_ID = ''
+CLIENT_ID = mykeys.CLIENT_ID
+CLIENT_SECRET = mykeys.CLIENT_SECRET
+USER_AGENT = mykeys.USER_AGENT
+DEVELOPER_KEY = mykeys.DEVELOPER_KEY
 
 
 def getCalOauth():
