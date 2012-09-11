@@ -170,6 +170,21 @@ def quickEventInterface():
     location = raw_input('Location of event. Leave blank for none')
 
 
+def getStatus():
+    try:
+        inFile = open(FILENAME, 'rb')
+        try:
+            start = cPickle.load(inFile)
+            if start[0]:
+                print 'An event \'%s\' started at %s is already in progress'% (start[1], start[2])
+            else:
+                print 'No event is in progress.'
+        except IndexError, e:
+            'IndexError: %s' %e
+        finally:
+            inFile.close()
+    except IOError, e:
+        print 'IOError: %s' %e
 
 
 if __name__ == '__main__':
@@ -177,10 +192,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--start', help='Use this to initialize the starting of an event; the argument should be the summary of event', type=str)
     parser.add_argument('-e', '--end',  action='store_true', help='''Use to end an event and create a GCal event using this end time, and start time and information''')
+    parser.add_argument('-c', '--check', action='store_true', help='Returns information about a started event if there is one')
 
     args = parser.parse_args()
 
-    if args.end:
+    if args.check:
+        getStatus()
+    elif args.end:
         createEndEvent()
     elif args.start:
         createStartEvent(args.start)
