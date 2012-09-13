@@ -15,9 +15,6 @@ FILENAME = os.path.join(os.path.dirname(__file__), 'credentials/start.txt')
 CACHE_FILE = os.path.join(os.path.dirname(__file__), 'credentials/cache.txt')
 DATA = os.path.join(os.path.dirname(__file__), 'credentials/calendar.dat')
 
-# Replace all these values with your own google credentials in string format.
-# ie. CLIENT_SECRET = 'v2AXx9_0XPuBe8afJKadsj''
-
 
 def authGCal():
     global SERVICE

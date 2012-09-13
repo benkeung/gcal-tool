@@ -46,10 +46,9 @@ def formatDateTime(datetime):
 
 
 def validateDateTime(dtime):
-    dt = dtime.split()
-    h = dt[3].split(':')
-
     try:
+        dt = dtime.split()
+        h = dt[3].split(':')
         validateMinute(h[1])
         month = int(convertMonth(dt[1]))
         datetime.datetime(year=int(dt[2]), month=month, day=int(dt[0]),
