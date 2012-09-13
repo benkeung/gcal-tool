@@ -6,9 +6,6 @@ import cPickle
 sys.path.insert(0, os.path.abspath(".."))
 import cal
 
-
-import cPickle
-
 from os import remove
 
 FILENAME = '../credentials/start.txt'
@@ -96,31 +93,50 @@ class CreateEndEventTest(unittest.TestCase):
         except OSError:
             pass
 
-    def testWhatever(self):
-        createCacheFile()
-        self.assertTrue(True)
-
     def testNoEventStarted(self):
         createStartFile(False)
         self.assertEqual(None, cal.createEndEvent())
         inFile = open(FILENAME, 'rb')
         start = cPickle.load(inFile)
+        inFile.close()
         # file should still be false
         self.assertFalse(start[0])
 
     def testEventStartedWithConnection(self):
         createStartFile(True)
-        ()
+        inFile = open(FILENAME, 'rb')
+        start = cPickle.load(inFile)
+        inFile.close()
+        self.assertTrue(start[0])
 
         cal.createEndEvent()
         inFile = open(FILENAME, 'rb')
         start = cPickle.load(inFile)
-        self.assertEqual(False, start[0])
+        inFile.close()
+        self.assertFalse(start[0])
 
     def testEventStartedWithoutConnection(self):
         pass
         #not sure how to do this yet
         # need to disable internet some how
+
+class GetStatusTest(unittest.TestCase):
+
+    def tearDown(self):
+        try:
+            remove(FILENAME)
+        except OSError:
+            pass    
+
+    def testNoEvent(self):
+        createStartFile(False)
+        self.assertFalse(cal.getStatus())
+
+    def testIsEvent(self):
+        createStartFile(True)
+        self.assertTrue(cal.getStatus())
+
+
 
 def runTests():
     unittest.main()
