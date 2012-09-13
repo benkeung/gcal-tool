@@ -1,6 +1,7 @@
 import cPickle
 import argparse
 import os
+import helpers
 
 from my_oauth import CALID
 from my_oauth import getCalOauth
@@ -10,13 +11,12 @@ from datetime import datetime
 SERVICE = None
 IS_CONNECTION = True
 
-FILENAME =  os.path.join(os.path.dirname(__file__), 'credentials/start.txt')
+FILENAME = os.path.join(os.path.dirname(__file__), 'credentials/start.txt')
 CACHE_FILE = os.path.join(os.path.dirname(__file__), 'credentials/cache.txt')
 DATA = os.path.join(os.path.dirname(__file__), 'credentials/calendar.dat')
 
 # Replace all these values with your own google credentials in string format.
 # ie. CLIENT_SECRET = 'v2AXx9_0XPuBe8afJKadsj''
-CALID = CALID #calendar id
 
 
 def authGCal():
@@ -60,12 +60,14 @@ def checkIfStart(isStart=False, summary='Did not specify'):
             outFile.close()
 
             if not isStart:
-                print 'Need to first \'start\' an event before \'ending\' one. Use the -s [Summary] flag to \'start\' and event'
+                print '''Need to first \'start\' an event before \'ending\' one.
+                    Use the -s [Summary] flag to \'start\' and event'''
                 return isStart
 
             return isStart
         except IOError:
-            print 'IOError: Could not find any previous data and could not initialize one (pickle).'
+            print '''IOError: Could not find any previous data and could not
+                initialize one (pickle).'''
 
 
 def createStartEvent(summary='Did not specify a summary'):
@@ -74,12 +76,15 @@ def createStartEvent(summary='Did not specify a summary'):
             inFile = open(FILENAME, 'rb')
             start = cPickle.load(inFile)
             inFile.close()
-            print 'An event is already in progress. %s started at %s.)' % (start[2], start[1])
+            print 'An event is already in progress. %s started at %s.)' \
+                % (start[2], start[1])
             return
         except:
-            print 'An event has already been created. Cannot retrieve previous information.'
+            print '''An event has already been created. Cannot retrieve previous
+                information.'''
     else:
-        # if the event has not been started, want to save the current time and # argument passed
+        # if the event has not been started, want to save the current time and
+        # argument passed
         try:
             outFile = open(FILENAME, 'wb')
             start = (True, getCurrentTime(), summary)
@@ -95,7 +100,7 @@ def createEndEvent():
         # if there hasn;t been a start event initiated, terminate and
         # return a help message
         print 'Need to start an event before you can end one'
-    
+
     else:
         # if the event has been started, create an event using the
         # information from the start event
@@ -132,19 +137,19 @@ def createEndEvent():
                     outFile.close()
             except IOError:
                 print 'IOError in creating event'
-
-
-        # no internet connection, we we're going to add the event information 
+        # no internet connection, we we're going to add the event information
         # to a pickle object
         else:
-            print 'No internet acces. Caching your event end time. Information will be updated to GCal when you next submit an event with internet access.'
+            print '''No internet acces. Caching your event end time. Information
+                will be updated to GCal when you next submit an event with
+                internet access.'''
             toLoad = (start, getCurrentTime())
 
             try:
                 inFile = open(CACHE_FILE, 'rb')
                 try:
                     cached = cPickle.load(inFile)
-                    cached.append(toLoad)  
+                    cached.append(toLoad)
                 finally:
                     inFile.close()
 
@@ -152,7 +157,7 @@ def createEndEvent():
                     outFile = open(CACHE_FILE, 'wb')
                     cPickle.dump(cached, outFile)
                 finally:
-                    outFile.close()      
+                    outFile.close()
 
             except IOError:
                 # this should happen when CACHE_FILE does not exist
@@ -163,11 +168,74 @@ def createEndEvent():
                     inFile.close()
 
 
-def quickEventInterface():
-    begin = raw_input('Start time, ie. "16 Aug 2012 16:30"')
-    end = raw_input('End time, ie. "16 Aug 2012 16:30"')
-    sumary = raw_input('Summary of event. Leave blank for none')
-    location = raw_input('Location of event. Leave blank for none')
+def createEventInterface():
+    '''
+    Initilizes a command prompt interface to create a new event. Includes:
+    - start time
+    - end time
+    - title (opt)
+    - location (opt)
+    - details (opt)
+    '''
+
+    check = True
+    if helpers.promptYesOrNo("Are you sure you want to create a new event?"):
+        try:
+            while check:
+                st = helpers.promptQuestion("Input start time (Q to quit): ")
+                if st and helpers.validateDateTime(st):
+                    check = False
+                else:
+                    print '%s is not a valid date time' % st
+            check = True
+
+            while check:
+                et = helpers.promptQuestion('Input end time (Q to quit): ')
+                if et and helpers.validateDateTime(et):
+                    check = False
+                else:
+                    print '%s is not a valid date time' % et
+
+            check = True
+
+            title = helpers.promptQuestion('Input event title (Optional, leave '
+                'blank. Q to quit): ')
+            loc = helpers.promptQuestion('Input location (Optional, leave '
+                'blank. Q to quit): ')
+            desc = helpers.promptQuestion('Input description: (Optional, leave '
+                'blank. Q to quit): ')
+
+        except helpers.QuitException:
+            print 'Quitting creating event.'
+            return
+
+        st = helpers.formatDateTime(st)
+        et = helpers.formatDateTime(et)
+
+        tup = (st, et, title, loc, desc)
+        return tup
+    else:
+        print 'Cancelling creating an event'
+        return None
+
+
+def createEvent():
+    details = createEventInterface()
+    if details:
+        authGCal()
+        event = {
+            "end": {
+                "dateTime": str(details[1])
+            },
+            "start": {
+                "dateTime": str(details[0])
+            },
+            "summary": str(details[2]),
+            "location": str(details[3]),
+            "description": str(details[4])
+            }
+
+        SERVICE.events().insert(calendarId='primary', body=event).execute()
 
 
 def getStatus():
@@ -176,31 +244,78 @@ def getStatus():
         try:
             start = cPickle.load(inFile)
             if start[0]:
-                print 'An event \'%s\' started at %s is already in progress'% (start[1], start[2])
+                print 'An event \'%s\' started at % s is already in progress' \
+                    % (start[1], start[2])
+                return True
             else:
                 print 'No event is in progress.'
+                return False
         except IndexError, e:
-            'IndexError: %s' %e
+            'IndexError: %s' % e
         finally:
             inFile.close()
     except IOError, e:
-        print 'IOError: %s' %e
+        print 'IOError: %s' % e
+
+
+def cancelEvent():
+
+    if not checkIfStart():
+        print 'No event to cancel'
+
+    else:
+        try:
+            inFile = open(FILENAME, 'rb')
+            try:
+                start = cPickle.load(inFile)
+                event = start[2]
+            finally:
+                inFile.close()
+
+            if helpers.promptYesOrNo('Are you sure you want to cancel %s'
+                % event):
+
+                outFile = open(FILENAME, 'wb')
+                start = (False,)
+
+                try:
+                    cPickle.dump(start, outFile)
+                    print '%s cancelled' % event
+                finally:
+                    outFile.close()
+
+        except IOError, e:
+            print 'IOError: %s' % e
+        except IndexError, e:
+            print 'Index Error: %s' % e
 
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--start', help='Use this to initialize the starting of an event; the argument should be the summary of event', type=str)
-    parser.add_argument('-e', '--end',  action='store_true', help='''Use to end an event and create a GCal event using this end time, and start time and information''')
-    parser.add_argument('-c', '--check', action='store_true', help='Returns information about a started event if there is one')
+    parser.add_argument('-s', '--start', help='''Use this to initialize the
+        starting of an event; the argument should be the summary of event''', \
+        type=str)
+    parser.add_argument('-e', '--end',  action='store_true', help='''Use to end
+        an event and create a GCal event using this end time, and start time and
+        information''')
+    parser.add_argument('-i', '--info', action='store_true', \
+        help='Returns information about a started event if there is one')
+    parser.add_argument('-c', '--cancel', action='store_true', \
+        help='Cancels event if it needs to be cancelled')
+    parser.add_argument('-q', '--quickevent', action='store_true', \
+        help='Goes through an interface to create a new event')
 
     args = parser.parse_args()
 
-    if args.check:
+    if args.info:
         getStatus()
+    elif args.quickevent:
+        createEvent()
+    elif args.cancel:
+        cancelEvent()
     elif args.end:
         createEndEvent()
     elif args.start:
         createStartEvent(args.start)
     elif not args.end and not args.start:
-        print 'Help\n -s [summary] to start an event\n-e to end an event.'
+        parser.print_help()
