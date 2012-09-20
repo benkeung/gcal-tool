@@ -1,5 +1,6 @@
 import datetime
 import sys
+import timeit
 
 TIMEZONE = '-07:00'
 
@@ -14,7 +15,7 @@ class MinuteException(Exception):
 
 class DateException(Exception):
     pass
-    
+
 
 class QuitException(Exception):
     pass
