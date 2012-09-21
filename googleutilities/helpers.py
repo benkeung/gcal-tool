@@ -41,9 +41,13 @@ def formatDateTime(datetime):
         return None
 
     d = str(ar[2]) + '-' + month + '-' + str(ar[0])
-    t = str(ar[3]) + ':' + '00' + TIMEZONE
-    dt = d + 'T' + t
-    return dt
+
+    if len(ar) == 3:
+        return d + 'T00:00:00' + TIMEZONE
+    else:
+        t = str(ar[3]) + ':' + '00' + TIMEZONE
+        dt = d + 'T' + t
+        return dt
 
 
 def validateDateTime(dtime):
@@ -126,3 +130,5 @@ def promptQuestion(question):
 
 if __name__ == '__main__':
     pass
+    print sys.argv[0]
+    print __file__
