@@ -14,6 +14,9 @@ IS_CONNECTION = True
 FILENAME = os.path.join(os.path.dirname(__file__), 'credentials/start.txt')
 CACHE_FILE = os.path.join(os.path.dirname(__file__), 'credentials/cache.txt')
 DATA = os.path.join(os.path.dirname(__file__), 'credentials/calendar.dat')
+EVENT_DATA = os.path.join(os.path.dirname(__file__),
+    'credentials/eventdata.txt')
+
 
 
 def authGCal():
@@ -286,6 +289,43 @@ def cancelEvent():
         except IndexError, e:
             print 'Index Error: %s' % e
 
+
+def saveEventData(info):
+    '''
+    pickle it as a dictionary?
+    ie. data['CPSC320'] = (('start', 'end', 'summary'))
+    '''
+    toSave = convertToSaveData()
+    try:
+        inFile = open(EVENT_DATA, 'rb')
+        try:
+            data = cPickle.load(inFile)
+        finally:
+            inFile.close()
+
+    except IOError:
+        try:
+            outFile = open(EVENT_DATA, 'wb')
+            data = dict()
+
+        finally:
+            outFile.close()
+
+    saveData = convertToSaveData()
+    # add saveData to data (dict); key is going to be coursename or
+    # event header
+    try:
+        outFile = open(EVENT_DATA, 'wb')
+        try:
+            cPickle.dump(data, outFile)
+        finally:
+            outFile.close()
+    except IOError:
+        print 'saveEventData IO Error: Could not save new information'
+
+
+def convertToSaveData(info):
+    pass
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
