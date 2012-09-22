@@ -40,6 +40,16 @@ def createTask(title, due, notes=""):
 
         SERVICE.tasks().insert(tasklist=mykeys.TASK_ID, body=event).execute()
 
+def getAllTasks():
+    authService()
+
+    if not SERVICE:
+        print 'Could not authenticate Tasks'
+
+    else:
+        return SERVICE.tasks().list(tasklist=mykeys.TASK_ID).execute()
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--due', help='The date for the task')
