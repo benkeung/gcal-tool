@@ -18,7 +18,6 @@ EVENT_DATA = os.path.join(os.path.dirname(__file__),
     'credentials/eventdata.txt')
 
 
-
 def authGCal():
     global SERVICE
     global IS_CONNECTION
@@ -49,15 +48,19 @@ def checkIfStart(isStart=False, summary='Did not specify'):
     '''
     try:
         inFile = open(FILENAME, 'rb')
-        start = cPickle.load(inFile)
-        inFile.close()
+        try:
+            start = cPickle.load(inFile)
+        finally:
+            inFile.close()
         return start[0]
     except IOError:
         try:
             outFile = open(FILENAME, 'wb')
-            start = (isStart, getCurrentTime(), summary)
-            cPickle.dump(start, outFile)
-            outFile.close()
+            try:
+                start = (isStart, getCurrentTime(), summary)
+                cPickle.dump(start, outFile)
+            finally:
+                outFile.close()
 
             if not isStart:
                 print '''Need to first \'start\' an event before \'ending\' one.
@@ -70,41 +73,47 @@ def checkIfStart(isStart=False, summary='Did not specify'):
                 initialize one (pickle).'''
 
 
-def createStartEvent(summary='Did not specify a summary'):
+def createStartEvent(summary='Did not specify a summary', title=None):
     if checkIfStart(True):
         try:
             inFile = open(FILENAME, 'rb')
-            start = cPickle.load(inFile)
-            inFile.close()
-            print 'An event is already in progress. %s started at %s.)' \
-                % (start[2], start[1])
-            return
+            try:
+                start = cPickle.load(inFile)
+                print 'An event is already in progress. %s started at %s.)' \
+                    % (start[2], start[1])
+                return
+            finally:
+                inFile.close()
         except:
             print '''An event has already been created. Cannot retrieve previous
                 information.'''
+
     else:
         # if the event has not been started, want to save the current time and
         # argument passed
+        if not title:
+            if not helpers.promptYesOrNo(question="No title was specified? " \
+                "Are you sure you want to proceed?"):
+                print 'Quitting..'
+                return
+
         try:
             outFile = open(FILENAME, 'wb')
-            start = (True, getCurrentTime(), summary)
-            cPickle.dump(start, outFile)
-            outFile.close()
-            print 'Starting event, \'%s\', at %s' % (start[1], start[2])
+            try:
+                start = (True, getCurrentTime(), summary, title)
+                cPickle.dump(start, outFile)
+                print 'Starting event, \'%s\', at %s' % (start[1], start[2])
+            finally:
+                outFile.close()
         except IOError:
             print 'Problem saving start time information'
 
 
 def createEndEvent():
     if not checkIfStart(False):
-        # if there hasn;t been a start event initiated, terminate and
-        # return a help message
         print 'Need to start an event before you can end one'
 
     else:
-        # if the event has been started, create an event using the
-        # information from the start event
-        # authGCal()
         authGCal()
 
         try:
@@ -114,6 +123,9 @@ def createEndEvent():
             print 'Error loading start summary information'
         finally:
             inFile.close()
+
+        # use the start info and getCurrentTime() to save the data of event
+        saveEventData(start, getCurrentTime())
 
         if IS_CONNECTION:
             try:
@@ -290,12 +302,12 @@ def cancelEvent():
             print 'Index Error: %s' % e
 
 
-def saveEventData(info):
+def saveEventData(start, stop):
     '''
     pickle it as a dictionary?
     ie. data['CPSC320'] = (('start', 'end', 'summary'))
     '''
-    toSave = convertToSaveData()
+    print 'saveEventData'
     try:
         inFile = open(EVENT_DATA, 'rb')
         try:
@@ -311,9 +323,24 @@ def saveEventData(info):
         finally:
             outFile.close()
 
-    saveData = convertToSaveData()
-    # add saveData to data (dict); key is going to be coursename or
-    # event header
+    toSave = (start[1], stop, start[2])
+    title = start[3]
+
+    print title
+    print toSave
+
+
+    if title in data:
+        if data[title]:
+            temp = data[title]
+            temp.append(toSave)
+            data[title] = temp
+        else:
+            data[title] = [toSave]
+
+    else:
+        data[title] = [toSave]
+
     try:
         outFile = open(EVENT_DATA, 'wb')
         try:
@@ -321,11 +348,21 @@ def saveEventData(info):
         finally:
             outFile.close()
     except IOError:
-        print 'saveEventData IO Error: Could not save new information'
+        print 'saveEventData IOError.'
 
 
-def convertToSaveData(info):
-    pass
+def loadSaveData():
+    info = None
+    try:
+        inFile = open(EVENT_DATA, 'rb')
+        try:
+            info = cPickle.load(inFile)
+
+        finally:
+            inFile.close()
+    except IOError, e:
+        print 'loadSaveData, %s' % e
+    return info
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -341,6 +378,8 @@ if __name__ == '__main__':
         help='Cancels event if it needs to be cancelled')
     parser.add_argument('-q', '--quickevent', action='store_true', \
         help='Goes through an interface to create a new event')
+    parser.add_argument('-t', '--title', help='The header we store the event\
+        as')
 
     args = parser.parse_args()
 
@@ -353,6 +392,9 @@ if __name__ == '__main__':
     elif args.end:
         createEndEvent()
     elif args.start:
-        createStartEvent(args.start)
+        if args.title:
+            createStartEvent(args.start, title=args.title)
+        else:
+            createStartEvent(args.start)
     elif not args.end and not args.start:
         parser.print_help()
