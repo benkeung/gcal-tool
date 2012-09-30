@@ -14,8 +14,7 @@ IS_CONNECTION = True
 FILENAME = os.path.join(os.path.dirname(__file__), 'credentials/start.txt')
 CACHE_FILE = os.path.join(os.path.dirname(__file__), 'credentials/cache.txt')
 DATA = os.path.join(os.path.dirname(__file__), 'credentials/calendar.dat')
-EVENT_DATA = os.path.join(os.path.dirname(__file__),
-    'credentials/eventdata.txt')
+
 
 
 def authGCal():
@@ -33,7 +32,6 @@ def getR3339time(year, month, day, hour, minute):
     '''
     Returns an R3339 formatted time, ie.     # 2012-9-6T10:25:00-07:00
     '''
-    # set default to 0 sec and Pacific timezone
     TAIL = '00-07:00'
 
     date = str(year) + '-' + str(month) + '-' + str(day)
@@ -89,8 +87,6 @@ def createStartEvent(summary='Did not specify a summary', title=None):
                 information.'''
 
     else:
-        # if the event has not been started, want to save the current time and
-        # argument passed
         if not title:
             if not helpers.promptYesOrNo(question="No title was specified? " \
                 "Are you sure you want to proceed?"):
@@ -349,19 +345,6 @@ def saveEventData(start, stop):
     except IOError:
         print 'saveEventData IOError.'
 
-
-def loadSaveData():
-    info = None
-    try:
-        inFile = open(EVENT_DATA, 'rb')
-        try:
-            info = cPickle.load(inFile)
-
-        finally:
-            inFile.close()
-    except IOError, e:
-        print 'loadSaveData, %s' % e
-    return info
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

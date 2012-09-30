@@ -131,15 +131,7 @@ def promptQuestion(question):
     else:
         return ans
 
-
 def diffBetweenTimes(time1, time2):
-    '''
-    time1, time2 are valid R3339 times
-    '2012-9-6T10:25:00-07:00'
-
-    Precondition:
-        time1 is the earlier time; time2 is the later time
-    '''
     # after splitting, time1 is [y, m, d, h, m, s, tz, 00]
     time1 = [re.split(r'[:-]', x) for x in time1.split('T')]
     time2 = [re.split(r'[:-]', x) for x in time2.split('T')]
@@ -150,6 +142,19 @@ def diffBetweenTimes(time1, time2):
     time1 = [int(x) for x in time1]
     time2 = [int(x) for x in time2]
 
+    for i, v in enumerate(time1):
+        if i < 5:
+            if v > time2[i]:
+                return diffBetweenTimes_aux(time2, time1)
+
+    return diffBetweenTimes_aux(time1, time2)
+
+
+def diffBetweenTimes_aux(time1, time2):
+    '''
+    Precondition:
+        time1 is the earlier time; time2 is the later time
+    '''
     sing_month = True
     sing_day = True
     mins = 0
@@ -174,16 +179,7 @@ def diffBetweenTimes(time1, time2):
             else:
                 mins += + (60 - time1[4])
                 mins += time2[4]
-    return mins
-
-'''
-5:10 - 9:40 - 180 + 50 + 40 = 270
-550 - 710 = 60 + 10 + 10 = 80
-10:20 - 9:40
-'''
-
-
-print diffBetweenTimes('2012-9-6T10:25:00-07:00', '2012-9-6T11:50:00-07:00')
+    return abs(mins)
 
 if __name__ == '__main__':
     pass
