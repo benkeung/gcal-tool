@@ -307,7 +307,6 @@ def saveEventData(start, stop):
     pickle it as a dictionary?
     ie. data['CPSC320'] = (('start', 'end', 'summary'))
     '''
-    print 'saveEventData'
     try:
         inFile = open(EVENT_DATA, 'rb')
         try:
@@ -369,9 +368,9 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--start', help='''Use this to initialize the
         starting of an event; the argument should be the summary of event''', \
         type=str)
-    parser.add_argument('-e', '--end',  action='store_true', help='''Use to end
+    parser.add_argument('-e', '--end', help='''Use to end
         an event and create a GCal event using this end time, and start time and
-        information''')
+        information''', nargs='?', const=True)
     parser.add_argument('-i', '--info', action='store_true', \
         help='Returns information about a started event if there is one')
     parser.add_argument('-c', '--cancel', action='store_true', \
