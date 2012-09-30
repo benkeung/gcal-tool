@@ -27,8 +27,8 @@ class testFormatDateTime(unittest.TestCase):
                 ('28 February 2011 23:59', '2011-2-28T23:59:00-07:00'),
                 ('1 Jan 2001 00:00', '2001-1-1T00:00:00-07:00'))
 
-    bad_date_time = (('32 Jan 2012 23:30'), ('30 Feb 2012 10:30'), 
-            ('31 April 2012 11:30'), ('10 April 2012 24:00'), 
+    bad_date_time = (('32 Jan 2012 23:30'), ('30 Feb 2012 10:30'),
+            ('31 April 2012 11:30'), ('10 April 2012 24:00'),
             ('24 April 2012 10:60'), ('25 Dec 2000 10:90'),
             ('10 NtReal 2011 10:30'))
 
@@ -56,5 +56,26 @@ class testFormatDateTime(unittest.TestCase):
     def testValidateDateTimeException(self):
         for dt in self.bad_date_time:
             self.assertFalse(helpers.validateDateTime(dt))
+
+
+class testDiffBetweenMonths(unittest.TestCase):
+
+    dates = ((('2012-9-6T10:25:00-07:00','2012-9-6T10:50:00-07:00'), 25),
+        (('2012-9-6T10:25:00-07:00','2012-9-6T10:31:00-07:00'), 6),
+        (('2012-9-6T10:25:00-07:00','2012-9-6T16:10:00-07:00'), 345),
+        (('2012-9-6T10:25:00-07:00','2012-9-6T10:25:00-07:00'), 0),
+        (('2012-9-6T00:00:00-07:00','2012-9-6T23:59:00-07:00'), 1439),
+        (('2012-9-6T20:25:00-07:00','2012-9-7T02:00:00-07:00'), 335),
+        (('2012-9-6T18:10:00-07:00','2012-9-7T5:20:00-07:00'), 670),
+        (('2012-9-6T18:10:00-07:00','2012-9-8T5:20:00-07:00'), 2110)
+
+        )
+
+    # 320 +
+    def testDiffBetweenMonths(self):
+        for d in self.dates:
+            print helpers.diffBetweenTimes(*d[0]), d[1]
+            self.assertEqual(helpers.diffBetweenTimes(* d[0]), d[1])
+
 
 unittest.main()
