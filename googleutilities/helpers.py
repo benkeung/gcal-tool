@@ -1,8 +1,12 @@
 import datetime
+import re
 import sys
 import timeit
 
+
 TIMEZONE = '-07:00'
+NUMDAYSINMONTH = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31,
+    9: 30, 10: 31, 11: 30, 12: 31}
 
 
 class MonthException(Exception):
@@ -128,7 +132,58 @@ def promptQuestion(question):
         return ans
 
 
+def diffBetweenTimes(time1, time2):
+    '''
+    time1, time2 are valid R3339 times
+    '2012-9-6T10:25:00-07:00'
+
+    Precondition:
+        time1 is the earlier time; time2 is the later time
+    '''
+    # after splitting, time1 is [y, m, d, h, m, s, tz, 00]
+    time1 = [re.split(r'[:-]', x) for x in time1.split('T')]
+    time2 = [re.split(r'[:-]', x) for x in time2.split('T')]
+
+    time1 = time1[0] + time1[1]
+    time2 = time2[0] + time2[1]
+
+    time1 = [int(x) for x in time1]
+    time2 = [int(x) for x in time2]
+
+    sing_month = True
+    sing_day = True
+    mins = 0
+
+    for i, v in enumerate(time1):
+        if i == 1:
+            if v == time2[1]:
+                pass
+                #TODO
+        if i == 2 and v != time2[2]:
+            mins += (1440 * (time2[2] - v -1))
+            sing_day = False
+        if i == 3:
+            if sing_day:
+                mins += (60 * (time2[3] - time1[3] - 1))
+            else:
+                mins += (60 * (24 - time1[3] - 1))
+                mins += (60 * time2[3])
+        if i == 4:
+            if sing_day:
+                mins += ((60 - time1[4]) + time2[4])
+            else:
+                mins += + (60 - time1[4])
+                mins += time2[4]
+    return mins
+
+'''
+5:10 - 9:40 - 180 + 50 + 40 = 270
+550 - 710 = 60 + 10 + 10 = 80
+10:20 - 9:40
+'''
+
+
+print diffBetweenTimes('2012-9-6T10:25:00-07:00', '2012-9-6T11:50:00-07:00')
+
 if __name__ == '__main__':
     pass
-    print sys.argv[0]
-    print __file__
