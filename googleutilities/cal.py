@@ -14,7 +14,8 @@ IS_CONNECTION = True
 FILENAME = os.path.join(os.path.dirname(__file__), 'credentials/start.txt')
 CACHE_FILE = os.path.join(os.path.dirname(__file__), 'credentials/cache.txt')
 DATA = os.path.join(os.path.dirname(__file__), 'credentials/calendar.dat')
-
+EVENT_DATA = os.path.join(os.path.dirname(__file__),
+    'credentials/eventdata.txt')
 
 
 def authGCal():
